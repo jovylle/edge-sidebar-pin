@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>edge-sidebar-pin — Pin any site in Microsoft Edge sidebar</title>
+  <meta name="description" content="Repoint an existing Edge sidebar slot to Messenger, WhatsApp, or any site after Edge retired Add app. Windows, double-click Start.cmd.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #0078d4;
+      --accent-hover: #106ebe;
+      --edge: #0078d4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    header { text-align: center; margin-bottom: 2.5rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.85rem;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: clamp(1.75rem, 5vw, 2.35rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 36em;
+      margin: 0 auto 1.5rem;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    a.btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+    }
+    a.btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    a.btn-primary:hover { background: var(--accent-hover); }
+    a.btn-ghost {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    a.btn-ghost:hover { border-color: var(--muted); }
+    .media-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+    .media-panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .showcase {
+      display: grid;
+      gap: 1.25rem;
+      padding: 1.25rem;
+    }
+    @media (min-width: 800px) {
+      .showcase { grid-template-columns: 1fr 1fr; align-items: start; }
+    }
+    .showcase figure { margin: 0; }
+    .showcase figcaption {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    .screenshot {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #000;
+    }
+    .video-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .video-block h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      background: #000;
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    section { margin-bottom: 2rem; }
+    section h2 {
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+    ol.steps {
+      list-style: none;
+      counter-reset: step;
+    }
+    ol.steps li {
+      counter-increment: step;
+      position: relative;
+      padding-left: 2.5rem;
+      margin-bottom: 0.85rem;
+      color: var(--muted);
+    }
+    ol.steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      width: 1.65rem;
+      height: 1.65rem;
+      line-height: 1.65rem;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--edge);
+      border-radius: 50%;
+    }
+    ol.steps strong { color: var(--text); }
+    code {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 0.88em;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.12em 0.4em;
+      border-radius: 4px;
+      color: #79c0ff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+    }
+    .preset {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+    }
+    .note {
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-left: 3px solid var(--edge);
+      padding-left: 1rem;
+      margin-top: 1.5rem;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="badge">Windows · Microsoft Edge · Not affiliated with Microsoft</p>
+      <h1>edge-sidebar-pin</h1>
+      <p class="lead">
+        Pin <strong>Messenger</strong>, <strong>WhatsApp</strong>, or <strong>any site</strong> in the Edge sidebar
+        by repointing a slot you already have — after Edge retired “Add app”.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/jovylle/edge-sidebar-pin">View on GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/jovylle/edge-sidebar-pin/archive/refs/heads/master.zip">Download ZIP</a>
+      </div>
+    </header>
+
+    <div class="media-panel">
+      <h2>See it in action</h2>
+      <div class="showcase">
+        <figure>
+          <img
+            class="screenshot"
+            src="https://github.com/user-attachments/assets/0f82cd79-bc80-43ba-ad8f-c2dcd6e54521"
+            alt="Microsoft Edge with Messenger pinned in the sidebar"
+            width="857"
+            height="840"
+            loading="eager">
+          <figcaption>Messenger in the Edge sidebar</figcaption>
+        </figure>
+        <div class="video-block">
+          <h3>Video walkthrough</h3>
+          <div class="video-wrap">
+            <iframe
+              src="https://www.youtube.com/embed/Do5feQ-8uKs"
+              title="edge-sidebar-pin demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Quick start</h2>
+      <ol class="steps">
+        <li><strong>Clone or download</strong> the repo (Windows 10/11 + Edge required).</li>
+        <li>You need at least one <strong>existing sidebar app</strong> (Copilot, Twitch, ChatGPT, …).</li>
+        <li>Double-click <code>Start.cmd</code> — pick a slot, pick a site, confirm. Edge closes only when you confirm.</li>
+        <li>Open Edge normally. Undo with <code>Restore.cmd</code> if needed.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Presets</h2>
+      <div class="grid">
+        <span class="preset">Messenger</span>
+        <span class="preset">WhatsApp</span>
+        <span class="preset">Telegram</span>
+        <span class="preset">Discord</span>
+        <span class="preset">Instagram</span>
+        <span class="preset">Spotify</span>
+        <span class="preset">Slack</span>
+        <span class="preset">Teams</span>
+      </div>
+      <p class="note">
+        Custom URLs work too: <code>Pin.cmd "https://yoursite.com/" "Label"</code>.
+        Something wrong? Try <code>Start-FullLog.cmd</code> for a saved debug log.
+      </p>
+    </section>
+
+    <footer>
+      <p>
+        MIT License ·
+        <a href="https://github.com/jovylle/edge-sidebar-pin">Source</a> ·
+        <a href="https://youtu.be/Do5feQ-8uKs">YouTube</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
