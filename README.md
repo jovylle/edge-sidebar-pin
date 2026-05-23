@@ -27,6 +27,7 @@ Double-click **`Start.cmd`** — list your slots, pick one, pick a site, confirm
 | File | Purpose |
 |------|---------|
 | **`Start.cmd`** | Guided setup (recommended) |
+| **`Start-FullLog.cmd`** | Same as Start, with verbose diagnostics and a saved log |
 | **`Pin.cmd`** *Site* | Quick pin, e.g. `Pin.cmd Messenger` |
 | **`Restore.cmd`** | Undo last change from automatic backup |
 
@@ -34,6 +35,7 @@ No custom sidebar slots? `Start.cmd` explains why and stops.
 
 ```bat
 Start.cmd
+Start-FullLog.cmd
 Pin.cmd Messenger
 Pin.cmd WhatsApp
 Pin.cmd "https://example.com/" "My app"
@@ -69,6 +71,7 @@ powershell -ExecutionPolicy Bypass -File .\Edge-Set-SidebarApp.ps1 -Url "https:/
 | Flag | Description |
 |------|-------------|
 | `-Wizard` | Guided flow (same as `Start.cmd`) |
+| `-FullLog` | Verbose diagnostics, full errors, transcript under `%TEMP%\edge-sidebar-pin` |
 | `-List` | Show slots only |
 | `-Preset` / positional `Site` | Built-in site |
 | `-Url` / `-Name` | Custom site |
@@ -89,7 +92,7 @@ powershell -ExecutionPolicy Bypass -File .\Edge-Set-SidebarApp.ps1 -Url "https:/
 ```
 edge-sidebar-pin/
   Edge-Set-SidebarApp.ps1
-  Start.cmd  Pin.cmd  Restore.cmd
+  Start.cmd  Start-FullLog.cmd  Pin.cmd  Restore.cmd
   README.md  CONTEXT.md  CHANGELOG.md  LICENSE
 ```
 

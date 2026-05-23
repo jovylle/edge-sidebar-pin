@@ -37,6 +37,9 @@
 .PARAMETER Wizard
   Guided flow: list slots, pick slot and site, confirm, then pin.
 
+.PARAMETER FullLog
+  Verbose diagnostics, full errors on failure, and a transcript under %TEMP%\edge-sidebar-pin.
+
 .EXAMPLE
   .\Start.cmd
   .\Pin.cmd Messenger
@@ -68,10 +71,80 @@ param(
     [switch] $List,
     [switch] $Pick,
     [switch] $Restore,
-    [switch] $Wizard
+    [switch] $Wizard,
+    [switch] $FullLog
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:TranscriptPath = $null
+
+if ($FullLog) {
+    $VerbosePreference = 'Continue'
+    $DebugPreference = 'Continue'
+    $logDir = Join-Path $env:TEMP 'edge-sidebar-pin'
+    $null = New-Item -ItemType Directory -Force -Path $logDir
+    $script:TranscriptPath = Join-Path $logDir ('run-{0:yyyyMMdd-HHmmss}.log' -f (Get-Date))
+    Start-Transcript -Path $script:TranscriptPath -Force | Out-Null
+    Write-Host "Full logging on. Transcript: $($script:TranscriptPath)"
+    Write-Host ''
+}
+
+function Stop-TranscriptIfOpen {
+    if (-not $script:TranscriptPath) { return }
+    Stop-Transcript -ErrorAction SilentlyContinue | Out-Null
+    $script:TranscriptPath = $null
+}
+
+function Exit-WithCode {
+    param([int] $Code = 0)
+    Stop-TranscriptIfOpen
+    exit $Code
+}
+
+function Write-Diag {
+    param([string] $Message)
+    if ($FullLog) {
+        Write-Host "[diag] $Message" -ForegroundColor DarkGray
+    }
+}
+
+trap {
+    Write-Host ''
+    Write-Host ('ERROR: {0}' -f $_.Exception.Message) -ForegroundColor Red
+    if ($FullLog) {
+        Write-Host ''
+        Write-Host '--- Full error ---' -ForegroundColor Yellow
+        if ($_.Exception.InnerException) {
+            Write-Host ('Inner: {0}' -f $_.Exception.InnerException.Message)
+        }
+        if ($_.CategoryInfo) {
+            Write-Host ('Category: {0}' -f $_.CategoryInfo.Category)
+        }
+        if ($_.TargetObject) {
+            Write-Host ('Target: {0}' -f $_.TargetObject)
+        }
+        if ($_.ScriptStackTrace) {
+            Write-Host ''
+            Write-Host 'Script stack:'
+            Write-Host $_.ScriptStackTrace
+        }
+        if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
+            Write-Host ''
+            Write-Host 'Details:'
+            Write-Host $_.ErrorDetails.Message
+        }
+        if ($script:TranscriptPath) {
+            Write-Host ''
+            Write-Host "Transcript: $($script:TranscriptPath)"
+        }
+    }
+    else {
+        Write-Host 'Tip: Start.cmd -FullLog (or Pin.cmd -FullLog) for details and a saved log.'
+    }
+    Stop-TranscriptIfOpen
+    exit 1
+}
 
 #region Data
 
@@ -142,7 +215,12 @@ $CommonTargets = @(
 function Stop-EdgeBrowser {
     if (Get-Process msedge -ErrorAction SilentlyContinue) {
         Write-Host 'Closing Microsoft Edge...'
-        taskkill /F /IM msedge.exe 2>$null | Out-Null
+        if ($FullLog) {
+            taskkill /F /IM msedge.exe
+        }
+        else {
+            taskkill /F /IM msedge.exe 2>$null | Out-Null
+        }
         Start-Sleep -Seconds 2
     }
     if (Get-Process msedge -ErrorAction SilentlyContinue) {
@@ -314,7 +392,7 @@ function Confirm-PinPlan {
     $answer = Read-Host 'Continue? (Y/n)'
     if ($answer -match '^[Nn]') {
         Write-Host 'Cancelled. No changes made.'
-        exit 0
+        Exit-WithCode 0
     }
 }
 
@@ -336,6 +414,12 @@ function Invoke-ApplyPin {
     Stop-EdgeBrowser
 
     $pattern = '(?s)"' + [regex]::Escape($SlotId) + '":\{"device_emulation":"[^"]+".*?"url":"' + [regex]::Escape($App.Url) + '"[^}]*\}'
+    Write-Diag "Slot id: $SlotId"
+    Write-Diag "Match url: $($App.Url)"
+    if ($FullLog) {
+        $preview = if ($pattern.Length -gt 200) { $pattern.Substring(0, 200) + '...' } else { $pattern }
+        Write-Diag "Regex: $preview"
+    }
     if ($Raw -notmatch $pattern) {
         throw "Could not find Preferences block for: $($App.Name)"
     }
@@ -364,8 +448,18 @@ function Invoke-ApplyPin {
         }
     }
 
-    $null = $Raw | ConvertFrom-Json
+    Write-Diag 'Validating JSON before write...'
+    try {
+        $null = $Raw | ConvertFrom-Json
+    }
+    catch {
+        if ($FullLog) {
+            Write-Diag "JSON error at offset $($_.Exception.Message)"
+        }
+        throw "Preferences JSON invalid after edit: $($_.Exception.Message)"
+    }
     [System.IO.File]::WriteAllText($PrefPath, $Raw)
+    Write-Diag "Wrote: $PrefPath ($((Get-Item -LiteralPath $PrefPath).Length) bytes)"
 
     Write-Host ''
     Write-Host "Done. Slot $SlotId is now $($Dest.Name)."
@@ -386,7 +480,7 @@ function Invoke-SidebarWizard {
 
     if ($Apps.Count -eq 0) {
         Write-NoSlotsHelp -ProfileName $ProfileName -PreferencesPath $PrefPath
-        exit 1
+        Exit-WithCode 1
     }
 
     Show-SlotsTable -ProfileName $ProfileName -PreferencesPath $PrefPath -Apps $Apps
@@ -403,11 +497,15 @@ function Invoke-SidebarWizard {
 function Get-SidebarApps {
     param([string] $Raw)
 
+    Write-Diag "Preferences length: $($Raw.Length) chars"
+
     if ($Raw -notmatch '"user_generated":\{(.+?)\},"user_generated_index"') {
+        Write-Diag 'No user_generated block matched (empty sidebar or newer Edge format).'
         return @()
     }
 
     $block = $Matches[1]
+    Write-Diag "user_generated block length: $($block.Length) chars"
     [regex]::Matches(
         $block,
         '"([0-9a-f-]{36})":\{"device_emulation":"([^"]+)"[^}]*"name":"([^"]+)"[^}]*"url":"([^"]+)"'
@@ -429,6 +527,11 @@ function Get-SidebarApps {
             Url    = $url
             Preset = $matched
         }
+    } | ForEach-Object -Begin { $script:DiagSlotCount = 0 } -Process {
+        $script:DiagSlotCount++
+        $_
+    } -End {
+        Write-Diag "Parsed $($script:DiagSlotCount) sidebar slot(s)."
     }
 }
 
@@ -527,6 +630,9 @@ function New-SidebarEntry {
 
 Resolve-SiteParameter
 
+Write-Diag "Profile: $Profile"
+Write-Diag "Preferences: $PrefPath"
+
 if (-not (Test-Path -LiteralPath $PrefPath)) {
     throw "Preferences not found: $PrefPath`nUse -Profile if you use another Edge profile."
 }
@@ -538,7 +644,7 @@ if ($Restore) {
     }
     Copy-Item -LiteralPath $BackupPath -Destination $PrefPath -Force
     Write-Host 'Restored from backup. Start Edge normally (avoid edge://restart on Copilot slots).'
-    exit 0
+    Exit-WithCode 0
 }
 
 $raw = [System.IO.File]::ReadAllText($PrefPath)
@@ -547,22 +653,22 @@ $apps = @(Get-SidebarApps -Raw $raw)
 if ($List) {
     if ($apps.Count -eq 0) {
         Write-NoSlotsHelp -ProfileName $Profile -PreferencesPath $PrefPath
-        exit 1
+        Exit-WithCode 1
     }
     Show-SlotsTable -ProfileName $Profile -PreferencesPath $PrefPath -Apps $apps
-    exit 0
+    Exit-WithCode 0
 }
 
 $dest = Get-Destination
 
 if ($Wizard) {
     Invoke-SidebarWizard -Apps $apps -Raw $raw -PrefPath $PrefPath -BackupPath $BackupPath -ProfileName $Profile
-    exit 0
+    Exit-WithCode 0
 }
 
 if ($apps.Count -eq 0) {
     Write-NoSlotsHelp -ProfileName $Profile -PreferencesPath $PrefPath
-    exit 1
+    Exit-WithCode 1
 }
 
 if ($Pick) {
@@ -586,5 +692,7 @@ else {
 }
 
 Invoke-ApplyPin -App $app -Dest $dest -SlotId $slotId -Raw $raw -PrefPath $PrefPath -BackupPath $BackupPath
+
+Exit-WithCode 0
 
 #endregion
