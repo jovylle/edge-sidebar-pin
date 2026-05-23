@@ -4,6 +4,8 @@ Pin **any site** in the Microsoft Edge sidebar after Edge retired “Add app” 
 
 **Windows only** · **Double-click `Start.cmd`** · **Not affiliated with Microsoft**
 
+**Demo:** [youtu.be/Do5feQ-8uKs](https://youtu.be/Do5feQ-8uKs) · **Site:** [jovylle.github.io/edge-sidebar-pin](https://jovylle.github.io/edge-sidebar-pin/)
+
 ## Why this exists
 
 Microsoft [retired the sidebar app list](https://support.microsoft.com/en-us/edge/streamline-access-to-your-favorite-sites-and-apps-with-sidebar-in-microsoft-edge). You can’t add new apps from the UI anymore.
@@ -91,10 +93,15 @@ powershell -ExecutionPolicy Bypass -File .\Edge-Set-SidebarApp.ps1 -Url "https:/
 
 ```
 edge-sidebar-pin/
+  docs/              # GitHub Pages site (demo + quick start)
   Edge-Set-SidebarApp.ps1
   Start.cmd  Start-FullLog.cmd  Pin.cmd  Restore.cmd
   README.md  CONTEXT.md  CHANGELOG.md  LICENSE
 ```
+
+### GitHub Pages
+
+After pushing `docs/`, enable **Settings → Pages → Build and deployment → GitHub Actions** (workflow `Deploy GitHub Pages`), or use **Deploy from branch → `master` → `/docs`**. Site URL: `https://jovylle.github.io/edge-sidebar-pin/`.
 
 ## License
 
