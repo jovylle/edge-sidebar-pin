@@ -1,4 +1,5 @@
 # edge-sidebar-pin
+<img width="857" height="840" alt="image" src="https://github.com/user-attachments/assets/0f82cd79-bc80-43ba-ad8f-c2dcd6e54521" />
 
 Pin **any site** in the Microsoft Edge sidebar after Edge retired “Add app” — by repointing a slot you already have (ChatGPT, Copilot, Twitch, etc.).
 
