@@ -101,7 +101,10 @@ edge-sidebar-pin/
 
 ### GitHub Pages
 
-After pushing `docs/`, enable **Settings → Pages → Build and deployment → GitHub Actions** (workflow `Deploy GitHub Pages`), or use **Deploy from branch → `master` → `/docs`**. Site URL: `https://jovylle.github.io/edge-sidebar-pin/`.
+1. Push to `master` (workflow publishes `docs/` to the `gh-pages` branch).
+2. Repo **Settings → Pages → Build and deployment** → **Deploy from a branch** → branch **`gh-pages`** → folder **`/` (root)** → Save.
+
+Site URL: `https://jovylle.github.io/edge-sidebar-pin/`
 
 ## License
 
