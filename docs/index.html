@@ -81,7 +81,7 @@
       border: 1px solid var(--border);
     }
     a.btn-ghost:hover { border-color: var(--muted); }
-    .video-block {
+    .media-panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -89,11 +89,47 @@
       margin-bottom: 2.5rem;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
     }
-    .video-block h2 {
+    .media-panel h2 {
       font-size: 1rem;
       font-weight: 600;
       padding: 1rem 1.25rem;
       border-bottom: 1px solid var(--border);
+    }
+    .showcase {
+      display: grid;
+      gap: 1.25rem;
+      padding: 1.25rem;
+    }
+    @media (min-width: 800px) {
+      .showcase { grid-template-columns: 1fr 1fr; align-items: start; }
+    }
+    .showcase figure { margin: 0; }
+    .showcase figcaption {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    .screenshot {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #000;
+    }
+    .video-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .video-block h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
     }
     .video-wrap {
       position: relative;
@@ -195,16 +231,31 @@
       </div>
     </header>
 
-    <div class="video-block">
-      <h2>Demo</h2>
-      <div class="video-wrap">
-        <iframe
-          src="https://www.youtube.com/embed/Do5feQ-8uKs"
-          title="edge-sidebar-pin demo"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen
-          loading="lazy"
-          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="media-panel">
+      <h2>See it in action</h2>
+      <div class="showcase">
+        <figure>
+          <img
+            class="screenshot"
+            src="https://github.com/user-attachments/assets/0f82cd79-bc80-43ba-ad8f-c2dcd6e54521"
+            alt="Microsoft Edge with Messenger pinned in the sidebar"
+            width="857"
+            height="840"
+            loading="eager">
+          <figcaption>Messenger in the Edge sidebar</figcaption>
+        </figure>
+        <div class="video-block">
+          <h3>Video walkthrough</h3>
+          <div class="video-wrap">
+            <iframe
+              src="https://www.youtube.com/embed/Do5feQ-8uKs"
+              title="edge-sidebar-pin demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          </div>
+        </div>
       </div>
     </div>
 
